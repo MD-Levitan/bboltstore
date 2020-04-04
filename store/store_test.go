@@ -1,15 +1,8 @@
 package store
 
 import (
-	"net/http"
-	"net/http/httptest"
 	"os"
 	"testing"
-	"time"
-
-	"github.com/gorilla/securecookie"
-	"github.com/gorilla/sessions"
-	"go.etcd.io/bbolt"
 )
 
 // var benchmarkDB = fmt.Sprintf("benchmark_store_%d.db", time.Now().Unix())
@@ -67,275 +60,296 @@ import (
 // 	}
 // }
 
-func TestStore_Get(t *testing.T) {
-	db, err := bbolt.Open("./sessions.db", 0666, nil)
-	if err != nil {
-		t.Error(err)
-	}
-	defer db.Close()
+// func TestStore_Get(t *testing.T) {
+// 	db, err := bbolt.Open("./sessions.db", 0666, nil)
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
+// 	defer db.Close()
 
-	req, err := http.NewRequest("GET", "http://localhost:3000/", nil)
-	if err != nil {
-		t.Error(err)
-	}
+// 	req, err := http.NewRequest("GET", "http://localhost:3000/", nil)
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
 
-	str, err := NewStore(
-		db,
-		Config{},
-		[]byte("secret-key"),
-	)
-	if err != nil {
-		t.Error(err)
-	}
+// 	str, err := NewStore(
+// 		db,
+// 		Config{},
+// 		[]byte("secret-key"),
+// 	)
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
 
-	session, err := str.Get(req, "test")
-	if err != nil {
-		t.Error(err)
-	}
+// 	session, err := str.Get(req, "test")
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
 
-	if session.IsNew != true {
-		t.Errorf("session.IsNew should be true (actual: %+v)", session.IsNew)
-	}
-}
+// 	if session.IsNew != true {
+// 		t.Errorf("session.IsNew should be true (actual: %+v)", session.IsNew)
+// 	}
+// }
 
-func TestStore_New(t *testing.T) {
-	db, err := bbolt.Open("./sessions.db", 0666, nil)
-	if err != nil {
-		t.Error(err)
-	}
-	defer db.Close()
+// func TestStore_New(t *testing.T) {
+// 	db, err := bbolt.Open("./sessions.db", 0666, nil)
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
+// 	defer db.Close()
 
-	str, err := NewStore(
-		db,
-		Config{},
-		[]byte("secret-key"),
-	)
-	if err != nil {
-		t.Error(err)
-	}
+// 	str, err := NewStore(
+// 		db,
+// 		Config{},
+// 		[]byte("secret-key"),
+// 	)
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
 
-	req, err := http.NewRequest("GET", "http://localhost:3000/", nil)
-	if err != nil {
-		t.Error(err)
-	}
+// 	req, err := http.NewRequest("GET", "http://localhost:3000/", nil)
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
 
-	encoded, err := securecookie.EncodeMulti("test", "1", str.codecs...)
+// 	encoded, err := securecookie.EncodeMulti("test", "1", str.codecs...)
 
-	req.AddCookie(sessions.NewCookie("test", encoded, &sessions.Options{
-		MaxAge: 1024,
-	}))
+// 	req.AddCookie(sessions.NewCookie("test", encoded, &sessions.Options{
+// 		MaxAge: 1024,
+// 	}))
 
-	session, err := str.New(req, "test")
-	if err != nil {
-		t.Error(err)
-	}
+// 	session, err := str.New(req, "test")
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
 
-	if session.IsNew != true {
-		t.Errorf("session.IsNew should be true (actual: %+v)", session.IsNew)
-	}
-}
+// 	if session.IsNew != true {
+// 		t.Errorf("session.IsNew should be true (actual: %+v)", session.IsNew)
+// 	}
+// }
 
-func TestStore_Save(t *testing.T) {
-	// When session.Options.MaxAge < 0
-	db, err := bbolt.Open("./sessions.db", 0666, nil)
-	if err != nil {
-		t.Error(err)
-	}
-	defer db.Close()
+// func TestStore_Save(t *testing.T) {
+// 	// When session.Options.MaxAge < 0
+// 	db, err := bbolt.Open("./sessions.db", 0666, nil)
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
+// 	defer db.Close()
 
-	str, err := NewStore(
-		db,
-		Config{},
-		[]byte("secret-key"),
-	)
-	if err != nil {
-		t.Error(err)
-	}
+// 	str, err := NewStore(
+// 		db,
+// 		Config{},
+// 		[]byte("secret-key"),
+// 	)
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
 
-	req, err := http.NewRequest("GET", "http://localhost:3000/", nil)
-	if err != nil {
-		t.Error(err)
-	}
+// 	req, err := http.NewRequest("GET", "http://localhost:3000/", nil)
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
 
-	session, err := str.Get(req, "test")
-	if err != nil {
-		t.Error(err)
-	}
+// 	session, err := str.Get(req, "test")
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
 
-	session.Options.MaxAge = -1
+// 	session.Options.MaxAge = -1
 
-	w := httptest.NewRecorder()
+// 	w := httptest.NewRecorder()
 
-	if err := str.Save(req, w, session); err != nil {
-		t.Error(err)
-	}
+// 	if err := str.Save(req, w, session); err != nil {
+// 		t.Error(err)
+// 	}
 
-	// When session.Options.MaxAge >= 0
-	session, err = str.Get(req, "test")
-	if err != nil {
-		t.Error(err)
-	}
+// 	// When session.Options.MaxAge >= 0
+// 	session, err = str.Get(req, "test")
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
 
-	session.Options.MaxAge = 1
+// 	session.Options.MaxAge = 1
 
-	w = httptest.NewRecorder()
+// 	w = httptest.NewRecorder()
 
-	if err := str.Save(req, w, session); err != nil {
-		t.Error(err)
-	}
+// 	if err := str.Save(req, w, session); err != nil {
+// 		t.Error(err)
+// 	}
 
-	// When session.Options.MaxAge >= 0 and
-	// s.save returns an error
-	session.Values = make(map[interface{}]interface{})
-	session.Values[make(chan int)] = make(chan int)
-	if err := str.Save(req, w, session); err == nil || err.Error() != "gob: type not registered for interface: chan int" {
-		t.Errorf(`str.Save should return an error "%s" (actual: %+v)`, "gob: type not registered for interface: chan int", err)
-	}
+// 	// When session.Options.MaxAge >= 0 and
+// 	// s.save returns an error
+// 	session.Values = make(map[interface{}]interface{})
+// 	session.Values[make(chan int)] = make(chan int)
+// 	if err := str.Save(req, w, session); err == nil || err.Error() != "gob: type not registered for interface: chan int" {
+// 		t.Errorf(`str.Save should return an error "%s" (actual: %+v)`, "gob: type not registered for interface: chan int", err)
+// 	}
 
-	// When session.Options.MaxAge >= 0 and
-	// securecookie.EncodeMulti  returns an error
-	session.Values = make(map[interface{}]interface{})
-	str.codecs = nil
-	if err := str.Save(req, w, session); err == nil || err.Error() != "securecookie: no codecs provided" {
-		t.Errorf(`str.Save should return an error "%s" (actual: %+v)`, "securecookie: no codecs provided", err)
-	}
-}
+// 	// When session.Options.MaxAge >= 0 and
+// 	// securecookie.EncodeMulti  returns an error
+// 	session.Values = make(map[interface{}]interface{})
+// 	str.codecs = nil
+// 	if err := str.Save(req, w, session); err == nil || err.Error() != "securecookie: no codecs provided" {
+// 		t.Errorf(`str.Save should return an error "%s" (actual: %+v)`, "securecookie: no codecs provided", err)
+// 	}
+// }
 
-func TestStore_load(t *testing.T) {
-	db, err := bbolt.Open("./sessions.db", 0666, nil)
-	if err != nil {
-		t.Error(err)
-	}
-	defer db.Close()
+// func TestStore_load(t *testing.T) {
+// 	db, err := bbolt.Open("./sessions.db", 0666, nil)
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
+// 	defer db.Close()
 
-	str, err := NewStore(
-		db,
-		Config{},
-		[]byte("secret-key"),
-	)
-	if err != nil {
-		t.Error(err)
-	}
+// 	str, err := NewStore(
+// 		db,
+// 		Config{},
+// 		[]byte("secret-key"),
+// 	)
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
 
-	req, err := http.NewRequest("GET", "http://localhost:3000/", nil)
-	if err != nil {
-		t.Error(err)
-	}
+// 	req, err := http.NewRequest("GET", "http://localhost:3000/", nil)
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
 
-	session, err := str.Get(req, "test")
-	if err != nil {
-		t.Error(err)
-	}
+// 	session, err := str.Get(req, "test")
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
 
-	w := httptest.NewRecorder()
+// 	w := httptest.NewRecorder()
 
-	if err := str.Save(req, w, session); err != nil {
-		t.Error(err)
-	}
+// 	if err := str.Save(req, w, session); err != nil {
+// 		t.Error(err)
+// 	}
 
-	exists, err := str.load(session)
-	if err != nil {
-		t.Error(err)
-	}
+// 	exists, err := str.load(session)
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
 
-	if exists != true {
-		t.Errorf("Store.load should return true (actual: false)")
-	}
+// 	if exists != true {
+// 		t.Errorf("Store.load should return true (actual: false)")
+// 	}
 
-	// When the target session data is nil
-	session.ID = "x"
-	exists, err = str.load(session)
-	if err != nil {
-		t.Error(err)
-	}
+// 	// When the target session data is nil
+// 	session.ID = "x"
+// 	exists, err = str.load(session)
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
 
-	if exists != false {
-		t.Errorf("Store.load should return false (actual: true)")
-	}
+// 	if exists != false {
+// 		t.Errorf("Store.load should return false (actual: true)")
+// 	}
 
-	// When Session returns an error
-	err = db.Update(func(tx *bbolt.Tx) error {
-		return tx.Bucket(str.config.DBOptions.BucketName).Put([]byte("x"), []byte("test"))
-	})
-	if err != nil {
-		t.Error(err)
-	}
-	_, err = str.load(session)
-	if err == nil {
-		t.Errorf(`str.load should return an error "%s" (actual: %s)`, "json: jsonbuf.Session: wiretype end group for non-group", err)
-	}
+// 	// When Session returns an error
+// 	err = db.Update(func(tx *bbolt.Tx) error {
+// 		return tx.Bucket(str.config.DBOptions.BucketName).Put([]byte("x"), []byte("test"))
+// 	})
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
+// 	_, err = str.load(session)
+// 	if err == nil {
+// 		t.Errorf(`str.load should return an error "%s" (actual: %s)`, "json: jsonbuf.Session: wiretype end group for non-group", err)
+// 	}
 
-	// When the target session data is expired
-	session, err = str.Get(req, "test")
-	if err != nil {
-		t.Error(err)
-	}
-	session.Options.MaxAge = 0
-	if err := str.Save(req, w, session); err != nil {
-		t.Error(err)
-	}
+// 	// When the target session data is expired
+// 	session, err = str.Get(req, "test")
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
+// 	session.Options.MaxAge = 0
+// 	if err := str.Save(req, w, session); err != nil {
+// 		t.Error(err)
+// 	}
 
-	time.Sleep(time.Second)
-	_, err = str.load(session)
-	if err != nil {
-		t.Error(err)
-	}
-}
+// 	time.Sleep(time.Second)
+// 	_, err = str.load(session)
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
+// }
 
-func TestSession_delete(t *testing.T) {
-	db, err := bbolt.Open("./sessions.db", 0666, nil)
-	if err != nil {
-		t.Error(err)
-	}
-	defer db.Close()
+// func TestSession_delete(t *testing.T) {
+// 	db, err := bbolt.Open("./sessions.db", 0666, nil)
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
+// 	defer db.Close()
 
-	str, err := NewStore(
-		db,
-		Config{},
-		[]byte("secret-key"),
-	)
-	if err != nil {
-		t.Error(err)
-	}
+// 	str, err := NewStore(
+// 		db,
+// 		Config{},
+// 		[]byte("secret-key"),
+// 	)
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
 
-	req, err := http.NewRequest("GET", "http://localhost:3000/", nil)
-	if err != nil {
-		t.Error(err)
-	}
+// 	req, err := http.NewRequest("GET", "http://localhost:3000/", nil)
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
 
-	session, err := str.Get(req, "test")
-	if err != nil {
-		t.Error(err)
-	}
+// 	session, err := str.Get(req, "test")
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
 
-	db.Close()
+// 	db.Close()
 
-	err = str.delete(session)
+// 	err = str.delete(session)
 
-	if err.Error() != "database not open" {
-		t.Errorf(`str.delete should return an error "%s" (actual: %s)`, "database not open", err)
-	}
-}
+// 	if err.Error() != "database not open" {
+// 		t.Errorf(`str.delete should return an error "%s" (actual: %s)`, "database not open", err)
+// 	}
+// }
 
-func TestNew(t *testing.T) {
-	// When db.Update returns an error
-	db, err := bbolt.Open("./sessions.db", 0666, nil)
-	if err != nil {
-		t.Error(err)
-	}
-	db.Close()
+// func TestNew(t *testing.T) {
+// 	// When db.Update returns an error
+// 	db, err := bbolt.Open("./sessions.db", 0666, nil)
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
+// 	db.Close()
 
-	_, err = NewStore(
-		db,
-		Config{},
-		[]byte("secret-key"),
-	)
-	if err.Error() != "database not open" {
-		t.Errorf("str.delete  should return an error \"%s\" (actual: %v)", "database not open", err)
-	}
-}
+// 	_, err = NewStore(
+// 		db,
+// 		Config{},
+// 		[]byte("secret-key"),
+// 	)
+// 	if err.Error() != "database not open" {
+// 		t.Errorf("str.delete  should return an error \"%s\" (actual: %v)", "database not open", err)
+// 	}
+// }
 
-func TestFree(t *testing.T) {
+// func TestReaper(t *testing.T) {
+// 	config := NewDefaultConfig()
+// 	config.DBOptions.FreeDB = true
+
+// 	str, err := NewStoreWithDB("./sessions.db", *config, []byte("secret-key"))
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
+
+// 	if _, err := os.Stat("./sessions.db"); os.IsNotExist(err) {
+// 		t.Errorf("database didn't been created")
+// 	}
+
+// 	_ = str.config
+
+// 	if _, err := os.Stat("./sessions.db"); os.IsExist(err) {
+// 		t.Errorf("database didn't been removed")
+// 	}
+
+// }
+
+func expTestFree(t *testing.T) {
 	config := NewDefaultConfig()
 	config.DBOptions.FreeDB = true
 
@@ -347,10 +361,13 @@ func TestFree(t *testing.T) {
 	if _, err := os.Stat("./sessions.db"); os.IsNotExist(err) {
 		t.Errorf("database didn't been created")
 	}
+	defer Checker(str)
+}
 
-	_ = str.config
+func TestFree(t *testing.T) {
+	expTestFree(t)
 
-	if _, err := os.Stat("./sessions.db"); os.IsExist(err) {
+	if _, err := os.Stat("./sessions.db"); err == nil || os.IsExist(err) {
 		t.Errorf("database didn't been removed")
 	}
 

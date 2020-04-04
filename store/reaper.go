@@ -13,6 +13,16 @@ import (
 //### Public ###//
 //##############//
 
+// Checker invokes all possible goroutines.
+func Checker(store *Store) {
+	if store.config.ReaperOptions.StartRoutine {
+		Quit(Run(store.db, store.config.ReaperOptions))
+	}
+
+	CloseAndFree(store)
+
+}
+
 // Run invokes a reap function as a goroutine.
 func Run(db *bbolt.DB, options ROptions) (chan<- struct{}, <-chan struct{}) {
 	quitC, doneC := make(chan struct{}), make(chan struct{})
@@ -26,10 +36,14 @@ func Quit(quitC chan<- struct{}, doneC <-chan struct{}) {
 	<-doneC
 }
 
-func Free(db *bbolt.DB) {
-	if err := os.Remove(db.Path()); err != nil {
-		fmt.Fprintf(os.Stderr, "error: %v\n", err)
-		os.Exit(1)
+func CloseAndFree(store *Store) {
+	path := store.db.Path()
+	store.db.Close()
+	if store.config.DBOptions.FreeDB {
+		if err := os.Remove(path); err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
 	}
 }
 

@@ -153,7 +153,6 @@ func NewStoreWithDB(dbPath string, config Config, keyPairs ...[]byte) (*Store, e
 	if err != nil {
 		return nil, err
 	}
-	defer db.Close()
 
 	store := &Store{
 		codecs: securecookie.CodecsFromPairs(keyPairs...),
@@ -167,14 +166,5 @@ func NewStoreWithDB(dbPath string, config Config, keyPairs ...[]byte) (*Store, e
 	if err != nil {
 		return nil, err
 	}
-
-	if config.ReaperOptions.StartRoutine {
-		defer Quit(Run(db, config.ReaperOptions))
-	}
-
-	if config.DBOptions.FreeDB {
-		defer Free(db)
-	}
-
 	return store, nil
 }
