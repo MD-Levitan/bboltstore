@@ -127,8 +127,8 @@ func (s *Store) save(session *sessions.Session) error {
 	return err
 }
 
-// New creates and returns a session store.
-func New(db *bbolt.DB, config Config, keyPairs ...[]byte) (*Store, error) {
+// Creates new sesion storage using opened db.
+func NewStore(db *bbolt.DB, config Config, keyPairs ...[]byte) (*Store, error) {
 	config.setDefault()
 	store := &Store{
 		codecs: securecookie.CodecsFromPairs(keyPairs...),
@@ -142,5 +142,39 @@ func New(db *bbolt.DB, config Config, keyPairs ...[]byte) (*Store, error) {
 	if err != nil {
 		return nil, err
 	}
+	return store, nil
+}
+
+// Opens a db and creates new sesion storage.
+func NewStoreWithDB(dbPath string, config Config, keyPairs ...[]byte) (*Store, error) {
+	config.setDefault()
+
+	db, err := bbolt.Open(dbPath, 0666, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	store := &Store{
+		codecs: securecookie.CodecsFromPairs(keyPairs...),
+		config: config,
+		db:     db,
+	}
+	err = db.Update(func(tx *bbolt.Tx) error {
+		_, err := tx.CreateBucketIfNotExists(config.DBOptions.BucketName)
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if config.ReaperOptions.StartRoutine {
+		defer Quit(Run(db, config.ReaperOptions))
+	}
+
+	if config.DBOptions.FreeDB {
+		defer Free(db)
+	}
+
 	return store, nil
 }

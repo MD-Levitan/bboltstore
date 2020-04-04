@@ -12,12 +12,37 @@ type Config struct {
 	SessionOptions sessions.Options
 	// DBOptions represents options for a database.
 	DBOptions Options
+	// ReaperOptions represents options for a reaper routine
+	ReaperOptions ROptions
 }
 
 // Options represents options for a database.
 type Options struct {
 	// BucketName represents the name of the bucket which contains sessions.
 	BucketName []byte
+	// If FreeDB is true, then after closing DB and store, DB will be deleted.
+	FreeDB bool
+}
+
+type ROptions struct {
+	//StartRoutine represents the status of reaper
+	StartRoutine bool
+	// BucketName represents the name of the bucket which contains sessions.
+	BucketName []byte
+	// BatchSize represents the maximum number of sessions which the reaper
+	// process at one time.
+	BatchSize int
+	// CheckInterval represents the interval between the reaper's invocation.
+	CheckInterval time.Duration
+}
+
+func NewDefaultConfig() *Config {
+	return &Config{
+		SessionOptions: sessions.Options{Path: DefaultPath, MaxAge: DefaultMaxAge},
+		DBOptions:      Options{BucketName: []byte(DefaultBucketName), FreeDB: false},
+		ReaperOptions: ROptions{StartRoutine: false, BucketName: []byte(DefaultBucketName),
+			BatchSize: DefaultBatchSize, CheckInterval: DefaultCheckInterval},
+	}
 }
 
 // setDefault sets default to the config.
@@ -30,6 +55,15 @@ func (c *Config) setDefault() {
 	}
 	if c.DBOptions.BucketName == nil {
 		c.DBOptions.BucketName = []byte(DefaultBucketName)
+	}
+	if c.ReaperOptions.BatchSize == 0 {
+		c.ReaperOptions.BatchSize = DefaultBatchSize
+	}
+	if c.ReaperOptions.BucketName == nil {
+		c.ReaperOptions.BucketName = []byte(DefaultBucketName)
+	}
+	if c.ReaperOptions.CheckInterval == 0 {
+		c.ReaperOptions.CheckInterval = DefaultCheckInterval
 	}
 }
 

@@ -3,6 +3,7 @@ package store
 import (
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 
@@ -78,7 +79,7 @@ func TestStore_Get(t *testing.T) {
 		t.Error(err)
 	}
 
-	str, err := New(
+	str, err := NewStore(
 		db,
 		Config{},
 		[]byte("secret-key"),
@@ -104,7 +105,7 @@ func TestStore_New(t *testing.T) {
 	}
 	defer db.Close()
 
-	str, err := New(
+	str, err := NewStore(
 		db,
 		Config{},
 		[]byte("secret-key"),
@@ -142,7 +143,7 @@ func TestStore_Save(t *testing.T) {
 	}
 	defer db.Close()
 
-	str, err := New(
+	str, err := NewStore(
 		db,
 		Config{},
 		[]byte("secret-key"),
@@ -207,7 +208,7 @@ func TestStore_load(t *testing.T) {
 	}
 	defer db.Close()
 
-	str, err := New(
+	str, err := NewStore(
 		db,
 		Config{},
 		[]byte("secret-key"),
@@ -288,7 +289,7 @@ func TestSession_delete(t *testing.T) {
 	}
 	defer db.Close()
 
-	str, err := New(
+	str, err := NewStore(
 		db,
 		Config{},
 		[]byte("secret-key"),
@@ -324,7 +325,7 @@ func TestNew(t *testing.T) {
 	}
 	db.Close()
 
-	_, err = New(
+	_, err = NewStore(
 		db,
 		Config{},
 		[]byte("secret-key"),
@@ -332,6 +333,27 @@ func TestNew(t *testing.T) {
 	if err.Error() != "database not open" {
 		t.Errorf("str.delete  should return an error \"%s\" (actual: %v)", "database not open", err)
 	}
+}
+
+func TestFree(t *testing.T) {
+	config := NewDefaultConfig()
+	config.DBOptions.FreeDB = true
+
+	str, err := NewStoreWithDB("./sessions.db", *config, []byte("secret-key"))
+	if err != nil {
+		t.Error(err)
+	}
+
+	if _, err := os.Stat("./sessions.db"); os.IsNotExist(err) {
+		t.Errorf("database didn't been created")
+	}
+
+	_ = str.config
+
+	if _, err := os.Stat("./sessions.db"); os.IsExist(err) {
+		t.Errorf("database didn't been removed")
+	}
+
 }
 
 // func ExampleStore_Get() {
