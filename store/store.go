@@ -5,7 +5,6 @@ import (
 	"encoding/base32"
 	"encoding/gob"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -34,7 +33,8 @@ func (s *Store) Get(r *http.Request, name string) (*sessions.Session, error) {
 func (s *Store) New(r *http.Request, name string) (*sessions.Session, error) {
 	var err error
 	session := sessions.NewSession(s, name)
-	session.Options = &s.config.SessionOptions
+	options := s.config.SessionOptions
+	session.Options = &options
 	session.IsNew = true
 	if c, errCookie := r.Cookie(name); errCookie == nil {
 		err = securecookie.DecodeMulti(name, c.Value, &session.ID, s.codecs...)
@@ -42,10 +42,7 @@ func (s *Store) New(r *http.Request, name string) (*sessions.Session, error) {
 			ok, err := s.load(session)
 			session.IsNew = !(err == nil && ok) // not new if no error and data available
 		}
-	} else {
-		fmt.Print(c)
 	}
-	fmt.Print(session.ID)
 	return session, err
 }
 
