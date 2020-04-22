@@ -5,6 +5,7 @@ import (
 	"encoding/base32"
 	"encoding/gob"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -41,7 +42,10 @@ func (s *Store) New(r *http.Request, name string) (*sessions.Session, error) {
 			ok, err := s.load(session)
 			session.IsNew = !(err == nil && ok) // not new if no error and data available
 		}
+	} else {
+		fmt.Print(c)
 	}
+	fmt.Print(session.ID)
 	return session, err
 }
 
